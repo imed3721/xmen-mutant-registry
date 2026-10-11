@@ -1,10 +1,10 @@
-# 🧬 X-Men Mutant Registry
+# X-Men Mutant Registry
 
 A production-style Kubernetes deployment showcasing containerization, CI/CD automation, AWS infrastructure, Kubernetes reliability, and automated recovery.
 
 The **X-Men Mutant Registry** demonstrates how an application can be tested, containerized, deployed, monitored, and recovered using modern DevOps practices and cloud-native tooling.
 
-## 🏗️ Architecture
+## Architecture
 
 The deployment pipeline follows this workflow:
 
@@ -34,7 +34,7 @@ GitHub Actions
      AWS Network Load Balancer
 ```
 
-## 🛠️ Technology Stack
+## Technology Stack
 
 - **Source Control:** GitHub
 - **CI/CD:** GitHub Actions
@@ -45,7 +45,7 @@ GitHub Actions
 - **Cloud Identity and Access:** AWS IAM
 - **Networking:** Amazon VPC, AWS Network Load Balancer
 
-## ⚙️ CI/CD Pipeline
+## CI/CD Pipeline
 
 Every change pushed to `main` triggers an automated deployment workflow that:
 
@@ -58,7 +58,7 @@ Every change pushed to `main` triggers an automated deployment workflow that:
 
 This pipeline reduces manual deployment steps and provides a repeatable path from code changes to a running application.
 
-## ☸️ Kubernetes Reliability
+## Kubernetes Reliability
 
 The application is configured with Kubernetes features designed to improve availability, resource management, and container health.
 
@@ -76,7 +76,7 @@ The application is configured with Kubernetes features designed to improve avail
 
 These configurations demonstrate core Kubernetes practices for operating and managing a containerized application.
 
-## 🧪 Failure Testing and Automated Recovery
+## Failure Testing and Automated Recovery
 
 A dedicated GitHub Actions chaos workflow deliberately deletes an application Pod to simulate a failure.
 
@@ -99,7 +99,7 @@ This provides a practical demonstration of Kubernetes reconciliation and automat
 
 ![image alt](https://github.com/imed3721/xmen-mutant-registry/blob/62164f0715b7af00c53586928cb5b24893cea20b/screenshots/Screenshot%202026-10-12%20at%2000.24.52.png)
 
-## ↩️ Deployment Rollback
+## Deployment Rollback
 
 A separate GitHub Actions workflow supports deployment rollback using Kubernetes rollout history.
 
@@ -133,7 +133,7 @@ The rollback workflow demonstrates a practical recovery mechanism for failed app
 
 ![image alt](https://github.com/imed3721/xmen-mutant-registry/blob/3c86e70a0da951d1b95b155ab3955358c688f3af/screenshots/Screenshot%202026-10-12%20at%2000.13.27.png)
 
-## 🔐 AWS Authentication
+## AWS Authentication
 
 GitHub Actions authenticates to AWS using an IAM user with access keys stored as encrypted GitHub repository secrets.
 
@@ -141,7 +141,7 @@ GitHub Actions authenticates to AWS using an IAM user with access keys stored as
 
 This keeps credentials out of the repository while demonstrating how CI/CD workflows can authenticate to AWS services.
 
-## 🛡️ Security Practices
+## Security Practices
 
 The project incorporates several security-conscious practices:
 
@@ -154,7 +154,7 @@ The project incorporates several security-conscious practices:
 
 These measures provide a foundation for secure deployments, traceable releases, and controlled resource consumption.
 
-## 💰 Cost Management
+## Cost Management
 
 This project is designed as a short-lived learning and experimentation environment.
 
@@ -162,7 +162,7 @@ Amazon EKS and its associated AWS resources can incur ongoing costs, even when t
 
 **To avoid unnecessary charges, delete the EKS cluster and associated resources when the project is no longer in use.** Review related resources, including load balancers, networking components, and container images, to ensure that unwanted billable resources are also removed.
 
-## 🎯 Project Goals
+## Project Goals
 
 This project demonstrates practical experience with:
 
