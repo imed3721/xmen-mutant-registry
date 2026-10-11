@@ -1,0 +1,119 @@
+name: X-Men Mutant Registry - Rollback
+
+on:
+  workflow_dispatch:
+    inputs:
+      namespace:
+        description: Kubernetes namespace
+        required: true
+        default: default
+        type: string
+
+permissions:
+  contents: read
+
+env:
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+  EKS_CLUSTER: xmen-cluster
+  DEPLOYMENT_NAME: mutant-registry
+
+jobs:
+  rollback:
+    name: Roll back Kubernetes Deployment
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Configure kubectl for EKS
+        run: |
+          aws eks update-kubeconfig \
+            --region "$AWS_REGION" \
+            --name "$EKS_CLUSTER"
+
+      - name: Check current Deployment
+        env:
+          NAMESPACE: ${{ inputs.namespace }}
+        run: |
+          set -euo pipefail
+
+          kubectl get deployment "$DEPLOYMENT_NAME" \
+            -n "$NAMESPACE"
+
+          echo "Deployment history before rollback:"
+          kubectl rollout history \
+            "deployment/$DEPLOYMENT_NAME" \
+            -n "$NAMESPACE"
+
+      - name: Roll back to previous revision
+        env:
+          NAMESPACE: ${{ inputs.namespace }}
+        run: |
+          set -euo pipefail
+
+          kubectl rollout undo \
+            "deployment/$DEPLOYMENT_NAME" \
+            -n "$NAMESPACE"
+
+      - name: Wait for rollback to complete
+        env:
+          NAMESPACE: ${{ inputs.namespace }}
+        run: |
+          set -euo pipefail
+
+          kubectl rollout status \
+            "deployment/$DEPLOYMENT_NAME" \
+            -n "$NAMESPACE" \
+            --timeout=180s
+
+      - name: Verify restored Deployment
+        env:
+          NAMESPACE: ${{ inputs.namespace }}
+        run: |
+          set -euo pipefail
+
+          kubectl get deployment "$DEPLOYMENT_NAME" \
+            -n "$NAMESPACE" -o wide
+
+          kubectl get pods \
+            -n "$NAMESPACE" \
+            -l app=mutant-registry -o wide
+
+          READY=$(kubectl get deployment "$DEPLOYMENT_NAME" \
+            -n "$NAMESPACE" \
+            -o jsonpath='{.status.readyReplicas}')
+
+          DESIRED=$(kubectl get deployment "$DEPLOYMENT_NAME" \
+            -n "$NAMESPACE" \
+            -o jsonpath='{.spec.replicas}')
+
+          READY=${READY:-0}
+          DESIRED=${DESIRED:-0}
+
+          echo "Ready replicas: $READY/$DESIRED"
+
+          if [ "$READY" -lt "$DESIRED" ] || [ "$DESIRED" -lt 1 ]; then
+            echo "::error::Rollback verification failed."
+            exit 1
+          fi
+
+          echo "SUCCESS: The Deployment rollout completed and its replicas are ready."
+
+      - name: Report final state
+        if: always()
+        env:
+          NAMESPACE: ${{ inputs.namespace }}
+        run: |
+          kubectl rollout history \
+            "deployment/$DEPLOYMENT_NAME" \
+            -n "$NAMESPACE" || true
+
+          kubectl get pods \
+            -n "$NAMESPACE" \
+            -l app=mutant-registry -o wide || true
