@@ -89,6 +89,16 @@ The workflow demonstrates Kubernetes self-healing:
 
 This provides a practical demonstration of Kubernetes reconciliation and automated recovery from Pod-level failures.
 
+![image alt](https://github.com/imed3721/xmen-mutant-registry/blob/62164f0715b7af00c53586928cb5b24893cea20b/screenshots/Screenshot%202026-10-12%20at%2000.26.25.png)
+
+![image alt](https://github.com/imed3721/xmen-mutant-registry/blob/62164f0715b7af00c53586928cb5b24893cea20b/screenshots/Screenshot%202026-10-12%20at%2000.24.32.png)
+
+![image alt](https://github.com/imed3721/xmen-mutant-registry/blob/62164f0715b7af00c53586928cb5b24893cea20b/screenshots/Screenshot%202026-10-12%20at%2000.24.41.png)
+
+![image alt](https://github.com/imed3721/xmen-mutant-registry/blob/62164f0715b7af00c53586928cb5b24893cea20b/screenshots/Screenshot%202026-10-12%20at%2000.24.48.png)
+
+![image alt](https://github.com/imed3721/xmen-mutant-registry/blob/62164f0715b7af00c53586928cb5b24893cea20b/screenshots/Screenshot%202026-10-12%20at%2000.24.52.png)
+
 ## ↩️ Deployment Rollback
 
 A separate GitHub Actions workflow supports deployment rollback using Kubernetes rollout history.
@@ -96,6 +106,32 @@ A separate GitHub Actions workflow supports deployment rollback using Kubernetes
 This allows the Deployment to be returned to a previous revision when a release introduces unexpected behavior or a regression.
 
 The rollback workflow demonstrates a practical recovery mechanism for failed application releases.
+
+![image alt](https://github.com/imed3721/xmen-mutant-registry/blob/3c86e70a0da951d1b95b155ab3955358c688f3af/screenshots/Screenshot%202026-10-12%20at%2000.11.46.png)
+
+![image alt](https://github.com/imed3721/xmen-mutant-registry/blob/3c86e70a0da951d1b95b155ab3955358c688f3af/screenshots/Screenshot%202026-10-12%20at%2000.11.54.png)
+
+![image alt](https://github.com/imed3721/xmen-mutant-registry/blob/3c86e70a0da951d1b95b155ab3955358c688f3af/screenshots/Screenshot%202026-10-12%20at%2000.12.08.png)
+
+![image alt](https://github.com/imed3721/xmen-mutant-registry/blob/3c86e70a0da951d1b95b155ab3955358c688f3af/screenshots/Screenshot%202026-10-12%20at%2000.12.14.png)
+
+![image alt](https://github.com/imed3721/xmen-mutant-registry/blob/3c86e70a0da951d1b95b155ab3955358c688f3af/screenshots/Screenshot%202026-10-12%20at%2000.12.25.png)
+
+![image alt](https://github.com/imed3721/xmen-mutant-registry/blob/3c86e70a0da951d1b95b155ab3955358c688f3af/screenshots/Screenshot%202026-10-12%20at%2000.12.31.png)
+
+![image alt](https://github.com/imed3721/xmen-mutant-registry/blob/3c86e70a0da951d1b95b155ab3955358c688f3af/screenshots/Screenshot%202026-10-12%20at%2000.12.44.png)
+
+![image alt](https://github.com/imed3721/xmen-mutant-registry/blob/3c86e70a0da951d1b95b155ab3955358c688f3af/screenshots/Screenshot%202026-10-12%20at%2000.12.53.png)
+
+![image alt](https://github.com/imed3721/xmen-mutant-registry/blob/3c86e70a0da951d1b95b155ab3955358c688f3af/screenshots/Screenshot%202026-10-12%20at%2000.12.58.png)
+
+![image alt](https://github.com/imed3721/xmen-mutant-registry/blob/3c86e70a0da951d1b95b155ab3955358c688f3af/screenshots/Screenshot%202026-10-12%20at%2000.13.08.png)
+
+![image alt](https://github.com/imed3721/xmen-mutant-registry/blob/3c86e70a0da951d1b95b155ab3955358c688f3af/screenshots/Screenshot%202026-10-12%20at%2000.13.14.png)
+
+![image alt](https://github.com/imed3721/xmen-mutant-registry/blob/3c86e70a0da951d1b95b155ab3955358c688f3af/screenshots/Screenshot%202026-10-12%20at%2000.13.21.png)
+
+![image alt](https://github.com/imed3721/xmen-mutant-registry/blob/3c86e70a0da951d1b95b155ab3955358c688f3af/screenshots/Screenshot%202026-10-12%20at%2000.13.27.png)
 
 ## 🔐 AWS Authentication
 
