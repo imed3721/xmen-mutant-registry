@@ -2,6 +2,8 @@ const http = require("http");
 
 const PORT = process.env.PORT || 8080;
 
+const APP_VERSION = process.env.APP_VERSION || "1.0.0";
+
 const mutants = [
   {
     name: "Logan",
@@ -39,7 +41,10 @@ const server = http.createServer((req, res) => {
       "Content-Type": "application/json; charset=utf-8",
     });
 
-    res.end(JSON.stringify({ status: "healthy" }));
+    res.end(JSON.stringify({
+  status: "healthy",
+  version: APP_VERSION
+}));
     return;
   }
 
@@ -132,7 +137,7 @@ const server = http.createServer((req, res) => {
         </head>
         <body>
           <main>
-            <h1>🧬 X-Men Mutant Registry</h1>
+            <h1>🧬 X-Men Mutant Registry — Release 1.0.1</h1>
 
             <section class="mutant-grid" aria-label="Registered mutants">
               ${mutantCards}
