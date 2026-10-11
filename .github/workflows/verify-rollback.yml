@@ -1,0 +1,62 @@
+name: X-Men Mutant Registry - Verify Rollback Readiness
+
+on:
+  workflow_dispatch:
+    inputs:
+      namespace:
+        description: Kubernetes namespace
+        required: true
+        default: default
+        type: string
+
+permissions:
+  contents: read
+
+env:
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+  EKS_CLUSTER: xmen-cluster
+  DEPLOYMENT_NAME: mutant-registry
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Connect to EKS
+        run: |
+          aws eks update-kubeconfig \
+            --region "$AWS_REGION" \
+            --name "$EKS_CLUSTER"
+
+      - name: Inspect deployment and revision history
+        env:
+          NAMESPACE: ${{ inputs.namespace }}
+        run: |
+          set -euo pipefail
+
+          echo "=== Current deployment ==="
+          kubectl get deployment "$DEPLOYMENT_NAME" \
+            -n "$NAMESPACE" -o wide
+
+          echo "=== Rollout history ==="
+          kubectl rollout history \
+            "deployment/$DEPLOYMENT_NAME" \
+            -n "$NAMESPACE"
+
+          echo "=== ReplicaSets ==="
+          kubectl get replicasets \
+            -n "$NAMESPACE" \
+            -l app=mutant-registry -o wide
+
+          echo "=== Current container image ==="
+          kubectl get deployment "$DEPLOYMENT_NAME" \
+            -n "$NAMESPACE" \
+            -o jsonpath='{.spec.template.spec.containers[?(@.name=="mutant-registry")].image}'
+          echo
