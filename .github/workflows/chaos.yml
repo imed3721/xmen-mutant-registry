@@ -1,0 +1,170 @@
+name: X-Men Mutant Registry - Chaos Self-Healing Test
+
+on:
+  workflow_dispatch:
+    inputs:
+      namespace:
+        description: "Kubernetes namespace"
+        required: true
+        default: "default"
+        type: string
+
+permissions:
+  contents: read
+
+env:
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+  EKS_CLUSTER: xmen-cluster
+  DEPLOYMENT_NAME: mutant-registry
+  APP_LABEL: app=mutant-registry
+
+jobs:
+  chaos-test:
+    name: Demonstrate Kubernetes Self-Healing
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Configure kubectl for EKS
+        run: |
+          aws eks update-kubeconfig \
+            --region "$AWS_REGION" \
+            --name "$EKS_CLUSTER"
+
+      - name: Check deployment health
+        env:
+          NAMESPACE: ${{ inputs.namespace }}
+        run: |
+          set -euo pipefail
+
+          kubectl rollout status \
+            "deployment/$DEPLOYMENT_NAME" \
+            -n "$NAMESPACE" \
+            --timeout=180s
+
+          READY=$(kubectl get deployment "$DEPLOYMENT_NAME" \
+            -n "$NAMESPACE" \
+            -o jsonpath='{.status.readyReplicas}')
+
+          DESIRED=$(kubectl get deployment "$DEPLOYMENT_NAME" \
+            -n "$NAMESPACE" \
+            -o jsonpath='{.spec.replicas}')
+
+          echo "Ready replicas: ${READY:-0}/${DESIRED:-0}"
+
+          if [ "${READY:-0}" -lt 2 ]; then
+            echo "::error::At least two ready replicas are required for this test."
+            exit 1
+          fi
+
+      - name: Record initial pod state
+        id: before
+        env:
+          NAMESPACE: ${{ inputs.namespace }}
+        run: |
+          set -euo pipefail
+
+          kubectl get pods \
+            -n "$NAMESPACE" \
+            -l "$APP_LABEL" \
+            -o wide
+
+          POD=$(kubectl get pods \
+            -n "$NAMESPACE" \
+            -l "$APP_LABEL" \
+            --field-selector=status.phase=Running \
+            -o jsonpath='{.items[0].metadata.name}')
+
+          if [ -z "$POD" ]; then
+            echo "::error::No running application pod found."
+            exit 1
+          fi
+
+          echo "pod=$POD" >> "$GITHUB_OUTPUT"
+          echo "Pod selected for deletion: $POD"
+
+      - name: Inject chaos by deleting one pod
+        env:
+          NAMESPACE: ${{ inputs.namespace }}
+          TARGET_POD: ${{ steps.before.outputs.pod }}
+        run: |
+          set -euo pipefail
+
+          echo "Deleting pod: $TARGET_POD"
+          kubectl delete pod "$TARGET_POD" \
+            -n "$NAMESPACE" \
+            --wait=true \
+            --timeout=60s
+
+          echo "Pod deleted. Kubernetes should create a replacement."
+
+      - name: Verify self-healing
+        env:
+          NAMESPACE: ${{ inputs.namespace }}
+        run: |
+          set -euo pipefail
+
+          echo "Waiting for the deployment to recover..."
+
+          kubectl rollout status \
+            "deployment/$DEPLOYMENT_NAME" \
+            -n "$NAMESPACE" \
+            --timeout=240s
+
+          READY=0
+
+          for ATTEMPT in $(seq 1 24); do
+            READY=$(kubectl get deployment "$DEPLOYMENT_NAME" \
+              -n "$NAMESPACE" \
+              -o jsonpath='{.status.readyReplicas}')
+
+            DESIRED=$(kubectl get deployment "$DEPLOYMENT_NAME" \
+              -n "$NAMESPACE" \
+              -o jsonpath='{.spec.replicas}')
+
+            READY=${READY:-0}
+            DESIRED=${DESIRED:-0}
+
+            echo "Recovery check $ATTEMPT: $READY/$DESIRED replicas ready"
+
+            if [ "$READY" -ge 2 ] && [ "$READY" -ge "$DESIRED" ]; then
+              break
+            fi
+
+            sleep 10
+          done
+
+          if [ "$READY" -lt 2 ] || [ "$READY" -lt "$DESIRED" ]; then
+            echo "::error::Self-healing verification failed."
+            kubectl get pods -n "$NAMESPACE" -l "$APP_LABEL" -o wide
+            kubectl describe deployment "$DEPLOYMENT_NAME" -n "$NAMESPACE"
+            kubectl get events -n "$NAMESPACE" \
+              --sort-by=.metadata.creationTimestamp
+            exit 1
+          fi
+
+          echo "SUCCESS: Kubernetes restored the desired replica count."
+
+      - name: Report final state
+        if: always()
+        env:
+          NAMESPACE: ${{ inputs.namespace }}
+        run: |
+          kubectl get deployment "$DEPLOYMENT_NAME" \
+            -n "$NAMESPACE" -o wide || true
+
+          kubectl get pods \
+            -n "$NAMESPACE" \
+            -l "$APP_LABEL" \
+            -o wide || true
+
+          kubectl get events \
+            -n "$NAMESPACE" \
+            --sort-by=.metadata.creationTimestamp || true
