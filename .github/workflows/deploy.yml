@@ -33,7 +33,7 @@ jobs:
         with:
           node-version: "22"
 
-      - name: Check Node.js application syntax
+      - name: Check application syntax
         run: node --check server.js
 
       - name: Run application tests
@@ -41,10 +41,10 @@ jobs:
 
   deploy:
     name: Build and deploy to AWS
+    needs: test
     if: >-
       github.event_name == 'push' &&
       github.ref == 'refs/heads/main'
-    needs: test
     runs-on: ubuntu-latest
 
     steps:
@@ -76,47 +76,92 @@ jobs:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           IMAGE_TAG: ${{ github.sha }}
         run: |
-          docker build \
-            --tag "$REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" \
-            .
+          IMAGE="$REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+          docker build --tag "$IMAGE" .
+          echo "IMAGE=$IMAGE" >> "$GITHUB_ENV"
 
       - name: Push Docker image to ECR
-        env:
-          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          IMAGE_TAG: ${{ github.sha }}
         run: |
-          docker push \
-            "$REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+          docker push "$IMAGE"
 
-      - name: Configure kubectl
+      - name: Configure kubectl for EKS
         run: |
           aws eks update-kubeconfig \
             --region "$AWS_REGION" \
             --name "$EKS_CLUSTER"
 
-      - name: Deploy to Kubernetes
-        env:
-          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          IMAGE_TAG: ${{ github.sha }}
+      - name: Prepare Kubernetes manifest
         run: |
-          IMAGE="$REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+          test -f k8s/deployment.yaml
+          test -f k8s/service.yaml
 
-          kubectl apply -f k8s/deployment.yaml
+          grep -q 'IMAGE_PLACEHOLDER' k8s/deployment.yaml || {
+            echo "::error::IMAGE_PLACEHOLDER not found in deployment manifest"
+            exit 1
+          }
+
+          sed "s|IMAGE_PLACEHOLDER|$IMAGE|g" \
+            k8s/deployment.yaml \
+            > "$RUNNER_TEMP/deployment.yaml"
+
+          if grep -q 'IMAGE_PLACEHOLDER' "$RUNNER_TEMP/deployment.yaml"; then
+            echo "::error::Image placeholder was not replaced"
+            exit 1
+          fi
+
+      - name: Deploy to Kubernetes
+        run: |
+          kubectl apply -f "$RUNNER_TEMP/deployment.yaml"
           kubectl apply -f k8s/service.yaml
-
-          kubectl set image \
-            "deployment/$DEPLOYMENT_NAME" \
-            "$CONTAINER_NAME=$IMAGE"
 
       - name: Wait for rollout
         run: |
-          kubectl rollout status \
+          if ! kubectl rollout status \
             "deployment/$DEPLOYMENT_NAME" \
-            --timeout=180s
+            --timeout=180s; then
+
+            echo "::error::Deployment rollout failed"
+
+            echo "=== Deployment details ==="
+            kubectl describe deployment "$DEPLOYMENT_NAME" || true
+
+            echo "=== ReplicaSets ==="
+            kubectl get replicasets -o wide || true
+
+            echo "=== Pod status ==="
+            kubectl get pods \
+              -l app=mutant-registry \
+              -o wide || true
+
+            echo "=== Pod details ==="
+            kubectl describe pods \
+              -l app=mutant-registry || true
+
+            echo "=== Recent Kubernetes events ==="
+            kubectl get events \
+              --sort-by=.metadata.creationTimestamp || true
+
+            echo "=== Current container logs ==="
+            kubectl logs \
+              -l app=mutant-registry \
+              -c "$CONTAINER_NAME" \
+              --tail=100 \
+              --prefix=true || true
+
+            echo "=== Previous container logs ==="
+            kubectl logs \
+              -l app=mutant-registry \
+              -c "$CONTAINER_NAME" \
+              --previous \
+              --tail=100 \
+              --prefix=true || true
+
+            exit 1
+          fi
 
       - name: Show Kubernetes resources
         if: always()
         run: |
           kubectl get deployment "$DEPLOYMENT_NAME" || true
-          kubectl get pods -o wide || true
+          kubectl get pods -l app=mutant-registry -o wide || true
           kubectl get service "$DEPLOYMENT_NAME" || true
