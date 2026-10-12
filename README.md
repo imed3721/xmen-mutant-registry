@@ -58,7 +58,17 @@ Every change pushed to `main` triggers an automated deployment workflow that:
 
 This pipeline reduces manual deployment steps and provides a repeatable path from code changes to a running application.
 
-## Kubernetes Reliability
+## Kubernetes
+
+Kubernetes deploys and manages the containers in a cluster. It ensures the desired number of application instances are running and helps maintain service availability.
+
+This stage includes three important controls:
+
+- Health checks: Determine whether containers are alive and ready to receive traffic.
+- Replicas: Run multiple copies of the application to improve availability and capacity.
+- Resources: Set CPU and memory requests and limits to manage resource usage.
+
+### Kubernetes Reliability
 
 The application is configured with Kubernetes features designed to improve availability, resource management, and container health.
 
@@ -78,7 +88,7 @@ These configurations demonstrate core Kubernetes practices for operating and man
 
 ## Failure Testing and Automated Recovery
 
-A dedicated GitHub Actions chaos workflow deliberately deletes an application Pod to simulate a failure.
+A dedicated GitHub Actions **chaos workflow** deliberately deletes an application Pod to simulate a failure.
 
 The workflow demonstrates Kubernetes self-healing:
 
