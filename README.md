@@ -229,55 +229,29 @@ Rollback is useful when a new application release introduces unexpected behaviou
 <details>
 <summary><strong>View rollback workflow screenshots</strong></summary>
 
-**Screenshot 1**
-
 ![Rollback evidence 1](screenshots/Screenshot%202026-10-12%20at%2000.11.46.png)
-
-**Screenshot 2**
 
 ![Rollback evidence 2](screenshots/Screenshot%202026-10-12%20at%2000.11.54.png)
 
-**Screenshot 3**
-
 ![Rollback evidence 3](screenshots/Screenshot%202026-10-12%20at%2000.12.08.png)
-
-**Screenshot 4**
 
 ![Rollback evidence 4](screenshots/Screenshot%202026-10-12%20at%2000.12.14.png)
 
-**Screenshot 5**
-
 ![Rollback evidence 5](screenshots/Screenshot%202026-10-12%20at%2000.12.25.png)
-
-**Screenshot 6**
 
 ![Rollback evidence 6](screenshots/Screenshot%202026-10-12%20at%2000.12.31.png)
 
-**Screenshot 7**
-
 ![Rollback evidence 7](screenshots/Screenshot%202026-10-12%20at%2000.12.44.png)
-
-**Screenshot 8**
 
 ![Rollback evidence 8](screenshots/Screenshot%202026-10-12%20at%2000.12.53.png)
 
-**Screenshot 9**
-
 ![Rollback evidence 9](screenshots/Screenshot%202026-10-12%20at%2000.12.58.png)
-
-**Screenshot 10**
 
 ![Rollback evidence 10](screenshots/Screenshot%202026-10-12%20at%2000.13.08.png)
 
-**Screenshot 11**
-
 ![Rollback evidence 11](screenshots/Screenshot%202026-10-12%20at%2000.13.14.png)
 
-**Screenshot 12**
-
 ![Rollback evidence 12](screenshots/Screenshot%202026-10-12%20at%2000.13.21.png)
-
-**Screenshot 13**
 
 ![Rollback evidence 13](screenshots/Screenshot%202026-10-12%20at%2000.13.27.png)
 
