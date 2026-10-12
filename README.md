@@ -58,6 +58,13 @@ Every change pushed to `main` triggers an automated deployment workflow that:
 
 This pipeline reduces manual deployment steps and provides a repeatable path from code changes to a running application.
 
+## Image Management — Amazon ECR
+The Docker image is pushed to Amazon Elastic Container Registry (ECR), which stores container images for deployment.
+
+- Immutable tags are preferred for use because it means an image tag can't silently be replaced by another image.
+- Images can be tracked by version or commit.
+- Kubernetes can pull the intended image from the registry.
+
 ## Kubernetes
 
 Kubernetes deploys and manages the containers in a cluster. It ensures the desired number of application instances are running and helps maintain service availability.
@@ -186,4 +193,3 @@ This project demonstrates practical experience with:
 - Rolling back application releases.
 - Managing AWS authentication and deployment secrets.
 - Applying security and cost-awareness practices in a cloud environment.
-
